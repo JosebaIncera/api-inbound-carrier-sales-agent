@@ -8,13 +8,14 @@ from datetime import timezone
 import sys
 
 # Configure comprehensive logging
+log_handlers = [logging.StreamHandler(sys.stdout)]
+if settings.debug:  # or an env flag like os.getenv("LOG_TO_FILE") == "true"
+    log_handlers.append(logging.FileHandler('app.log', mode='a'))
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler('app.log', mode='a')
-    ]
+    handlers=log_handlers
 )
 
 # Set different log levels for different modules
