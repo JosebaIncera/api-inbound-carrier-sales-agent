@@ -43,6 +43,10 @@ async def health_check():
         "uptime": "running"
     }
 
+@app.get("/", include_in_schema=False)
+async def root():
+    return {"status": "ok", "message": "Carrier Sales API is running"}
+
 # Include routers
 app.include_router(carriers.router)
 app.include_router(loads.router)
