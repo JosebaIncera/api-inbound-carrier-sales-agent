@@ -45,8 +45,8 @@ async def store_metrics(metrics: MetricsRequest, api_key: str = Depends(verify_a
         logger.debug("API key validation passed")
         logger.debug("Storing metrics")
 
-        # store metrics in supabase
-        success = store_metrics_in_supabase(metrics)
+        # store metrics in supabase (await the async function)
+        success = await store_metrics_in_supabase(metrics)
         if success:
             message = "Metrics stored successfully"
         else:
