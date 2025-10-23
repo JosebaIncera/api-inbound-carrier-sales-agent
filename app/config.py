@@ -20,6 +20,14 @@ class Settings:
         else:
             logger.debug("No database URL configured")
         
+        # HappyRobot API settings
+        self.happyrobot_bearer_token: str = os.getenv("HAPPYROBOT_BEARER_TOKEN", "")
+        self.happyrobot_api_base_url: str = os.getenv("HAPPYROBOT_API_BASE_URL", "https://platform.happyrobot.ai/api/v1")
+        if self.happyrobot_bearer_token:
+            logger.debug("HappyRobot bearer token configured")
+        else:
+            logger.warning("No HappyRobot bearer token configured")
+        
         # Other settings can be added here
         self.debug: bool = os.getenv("DEBUG", "false").lower() == "true"
         logger.debug(f"Debug mode: {self.debug}")

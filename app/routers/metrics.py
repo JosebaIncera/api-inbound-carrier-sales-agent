@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
-from app.schemas.schemas import LoadsResponse, LoadResponse
-from app.utils.utils_loads import find_loads_within_radius, process_parameters
+from app.schemas.schemas import LoadsResponse, LoadResponse, MetricsRequest, MetricsResponse, MetricsStatsResponse
+from app.utils.utils_metrics import get_metrics_from_supabase, store_metrics_in_supabase
 from app.auth import verify_api_key
 from typing import Optional
 import logging
@@ -45,8 +45,8 @@ async def store_metrics(metrics: MetricsRequest, api_key: str = Depends(verify_a
         logger.debug("API key validation passed")
         logger.debug("Storing metrics")
 
-        # store metrics in supabase
-        success = store_metrics_in_supabase(metrics)
+        # store metrics in supabase (await the async function)
+        success = await store_metrics_in_supabase(metrics)
         if success:
             message = "Metrics stored successfully"
         else:
@@ -60,7 +60,7 @@ async def store_metrics(metrics: MetricsRequest, api_key: str = Depends(verify_a
         logger.error(f"Processing time: {processing_time:.3f}s")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.get("/", response_model=MetricsStatsResponse)
+@router.get("/health", response_model=MetricsStatsResponse)
 async def metrics_health_check(api_key: str = Depends(verify_api_key)):
     """Metrics health check endpoint with API key validation"""
     start_time = time.time()

@@ -91,18 +91,20 @@ class ConfirmResponse(BaseModel):
     message: str
 
 class MetricsRequest(BaseModel):
-    call_id: str
-    carrier_mc: str
-    call_duration: int  # in seconds
-    outcome: str  # "booked", "no_match", "rejected", "failed"
-    load_id: Optional[str] = None
-    final_rate: Optional[float] = None
-    notes: Optional[str] = None
+    call_outcome: str  # "No Match", "Booked", "Rejected", etc.
+    carrier_sentiment: str  # "Neutral", "Positive", "Negative"
+    load_loadboard_rate: Optional[float] = None
+    carrier_initial_offer: Optional[float] = None
+    load_agreed_rate: Optional[float] = None
+    negotiation_attempts: Optional[int] = None
+    run_id: str
+    organization_id: str
 
 class MetricsResponse(BaseModel):
     statusCode: int
-    success: bool
-    message: str
+    success: Optional[bool] = True
+    message: Optional[str] = "Success"
+    metrics: Optional[List[Dict[str, Any]]] = None
 
 
 class MetricsStatsResponse(BaseModel):
