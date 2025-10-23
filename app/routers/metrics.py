@@ -60,7 +60,7 @@ async def store_metrics(metrics: MetricsRequest, api_key: str = Depends(verify_a
         logger.error(f"Processing time: {processing_time:.3f}s")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.get("/", response_model=MetricsStatsResponse)
+@router.get("/health", response_model=MetricsStatsResponse)
 async def metrics_health_check(api_key: str = Depends(verify_api_key)):
     """Metrics health check endpoint with API key validation"""
     start_time = time.time()
