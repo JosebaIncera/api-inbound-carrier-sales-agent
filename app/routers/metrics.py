@@ -59,3 +59,20 @@ async def store_metrics(metrics: MetricsRequest, api_key: str = Depends(verify_a
         logger.error(f"Error in store_metrics endpoint: {str(e)}")
         logger.error(f"Processing time: {processing_time:.3f}s")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.get("/", response_model=MetricsStatsResponse)
+async def metrics_health_check(api_key: str = Depends(verify_api_key)):
+    """Metrics health check endpoint with API key validation"""
+    start_time = time.time()
+    logger.info("Metrics health check endpoint called")
+    try:
+        logger.debug("API key validation passed")
+        logger.debug("Returning metrics health check")
+
+        # return metrics health check
+        return MetricsStatsResponse(statusCode=200, success=True, message="Metrics health check passed")
+    except Exception as e:
+        processing_time = time.time() - start_time
+        logger.error(f"Error in metrics health check endpoint: {str(e)}")
+        logger.error(f"Processing time: {processing_time:.3f}s")
+        raise HTTPException(status_code=500, detail="Internal server error")
