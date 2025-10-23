@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
-from app.schemas.schemas import LoadsResponse, LoadResponse, MetricsResponse, MetricsStatsResponse
+from app.schemas.schemas import LoadsResponse, LoadResponse, MetricsRequest, MetricsResponse, MetricsStatsResponse
 from app.utils.utils_metrics import get_metrics_from_supabase, store_metrics_in_supabase
 from app.auth import verify_api_key
 from typing import Optional

@@ -47,6 +47,10 @@ except Exception as e:
             logger.debug(f"Selecting columns: {columns}")
             return MockQuery(self.table_name, columns)
         
+        def insert(self, data):
+            logger.debug(f"Inserting data into {self.table_name}: {data}")
+            return self
+        
         def eq(self, column, value):
             logger.debug(f"Adding equality filter: {column} = {value}")
             return self
