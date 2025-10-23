@@ -27,7 +27,6 @@ async def validate_carrier(
     """
     start_time = time.time()
     logger.info(f"Starting MC validation for: {mc_number}")
-    logger.debug(f"API key provided: {api_key[:8]}...")
     
     try:
         # API key is automatically validated by the dependency
@@ -72,7 +71,7 @@ async def get_carriers(api_key: str = Depends(verify_api_key)):
     """Get carriers endpoint with API key validation"""
     start_time = time.time()
     logger.info("Get carriers endpoint called")
-    logger.debug(f"API key provided: {api_key[:8]}...")
+
     
     try:
         logger.debug("API key validation passed")
