@@ -1,9 +1,14 @@
 from app.supabase import supabase
+from app.schemas.schemas import MetricsRequest
+import logging
+
+# Set up logger for this module
+logger = logging.getLogger(__name__)
 
 def get_metrics_from_supabase():
     """Get metrics from supabase"""
-    metrics = supabase.table("metrics").select("*").execute()
-    return metrics
+    # metrics = supabase.table("metrics").select("*").execute()
+    return []
 
 def store_metrics_in_supabase(metrics: MetricsRequest):
     """Store metrics in supabase"""
