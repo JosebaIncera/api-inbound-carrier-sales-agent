@@ -100,14 +100,10 @@ class MetricsRequest(BaseModel):
     notes: Optional[str] = None
 
 class MetricsResponse(BaseModel):
-    call_id: str
-    carrier_mc: str
-    call_duration: int
-    outcome: str
-    load_id: Optional[str] = None
-    final_rate: Optional[float] = None
-    notes: Optional[str] = None
-    timestamp: str
+    statusCode: int
+    success: bool
+    message: str
+
 
 class MetricsStatsResponse(BaseModel):
     total_calls: int

@@ -34,7 +34,6 @@ async def find_matching_loads(
     """
     start_time = time.time()
     logger.info(f"Starting load search - Equipment: {equipment_type}, Origin: {origin}")
-    logger.debug(f"API key provided: {api_key[:8]}...")
     logger.debug(f"Optional parameters - Destination: {destination}, Pickup: {pickup_datetime}")
     
     try:
