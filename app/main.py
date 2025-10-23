@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import carriers, loads
+from app.routers import carriers, loads, metrics
 from app.config import settings
 import logging
 import uvicorn
@@ -50,6 +50,7 @@ async def root():
 # Include routers
 app.include_router(carriers.router)
 app.include_router(loads.router)
+app.include_router(metrics.router)
 
 # Log configuration on startup
 @app.on_event("startup")
