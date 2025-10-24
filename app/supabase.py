@@ -51,6 +51,10 @@ except Exception as e:
             logger.debug(f"Inserting data into {self.table_name}: {data}")
             return self
         
+        def update(self, data):
+            logger.debug(f"Updating data in {self.table_name}: {data}")
+            return self
+        
         def eq(self, column, value):
             logger.debug(f"Adding equality filter: {column} = {value}")
             return self
@@ -65,6 +69,10 @@ except Exception as e:
         
         def limit(self, count):
             logger.debug(f"Adding limit: {count}")
+            return self
+        
+        def order(self, column, desc=False):
+            logger.debug(f"Adding order: {column} {'DESC' if desc else 'ASC'}")
             return self
         
         def execute(self):
@@ -91,6 +99,10 @@ except Exception as e:
         
         def limit(self, count):
             logger.debug(f"Adding limit: {count}")
+            return self
+        
+        def order(self, column, desc=False):
+            logger.debug(f"Adding order: {column} {'DESC' if desc else 'ASC'}")
             return self
         
         def execute(self):

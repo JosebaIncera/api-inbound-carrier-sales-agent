@@ -32,8 +32,14 @@ async def fetch_run_data_from_happyrobot(run_id: str, organization_id: str):
             response.raise_for_status()
             
             data = response.json()
-            duration = data.get("duration")
+
             status = data.get("status")
+            duration = ""
+            events = data.get("events", [])
+            for event in events:
+                if event.get("type") == "session":
+                    duration = event.get("duration")
+                    break
             
             logger.info(f"Successfully fetched run data - duration: {duration}, status: {status}")
             return duration, status
@@ -88,4 +94,57 @@ async def store_metrics_in_supabase(metrics: MetricsRequest):
         return True
     except Exception as e:
         logger.error(f"Error storing metrics in Supabase: {str(e)}")
+        raise e
+
+async def update_metrics_in_supabase():
+    """Update metrics in supabase by fetching rows where call_status is 'running' and updating them with HappyRobot data"""
+    logger.info("Starting metrics update process")
+    
+    try:
+        # Fetch rows from the metrics table where call_status is "running"
+        result = supabase.table("metrics").select("id, organization_id, run_id").eq("call_status", "running").execute()
+        
+        if not result.data:
+            logger.info("No metrics found to update")
+            return {"updated_count": 0, "message": "No metrics found to update"}
+        
+        logger.info(f"Found {len(result.data)} metrics to update")
+        
+        updated_count = 0
+        failed_count = 0
+        
+        # Process each row
+        for row in result.data:
+            row_id = row.get("id")
+            organization_id = row.get("organization_id")
+            run_id = row.get("run_id")
+            
+            logger.info(f"Processing metric row {row_id} for run_id: {run_id}, organization_id: {organization_id}")
+            
+            # Fetch run data from HappyRobot API
+            duration, status = await fetch_run_data_from_happyrobot(run_id, organization_id)
+            
+            # Update the row in the metrics table
+            update_data = {
+                "call_duration": duration,
+                "call_status": status
+            }
+            
+            try:
+                supabase.table("metrics").update(update_data).eq("id", row_id).execute()
+                logger.info(f"Successfully updated metric row {row_id} with duration: {duration}, status: {status}")
+                updated_count += 1
+            except Exception as e:
+                logger.error(f"Error updating metric row {row_id}: {str(e)}")
+                failed_count += 1
+        
+        logger.info(f"Metrics update complete. Updated: {updated_count}, Failed: {failed_count}")
+        return {
+            "updated_count": updated_count,
+            "failed_count": failed_count,
+            "message": f"Successfully updated {updated_count} metrics"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in update_metrics_in_supabase: {str(e)}")
         raise e
