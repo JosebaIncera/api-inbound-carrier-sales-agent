@@ -2,7 +2,7 @@ from geopy.geocoders import Nominatim
 import geopy.geocoders
 from math import radians, cos
 from app.supabase import supabase
-from datetime import datetime
+from datetime import datetime, date
 
 import logging
 
@@ -40,8 +40,22 @@ def generate_query(equipment_type: str, origin_min_lat: float, origin_max_lat: f
         pickup_datetime = None
     has_pickup_datetime = pickup_datetime is not None
     logger.debug(f"Has Destination: {has_destination}, Has Pickup Datetime: {has_pickup_datetime}")
+    
+    # Always filter out loads with pickup_datetime < today
+    today = date.today()
+    logger.debug(f"Filtering loads with pickup_datetime >= {today}")
+    
     # if only equipment_type, origin_lat and origin_lng are provided
     if has_destination and has_pickup_datetime:
+        # All parameters - check if specific pickup_datetime is >= today
+        if isinstance(pickup_datetime, datetime):
+            pickup_date = pickup_datetime.date()
+        elif isinstance(pickup_datetime, str):
+            pickup_date = datetime.fromisoformat(pickup_datetime).date()
+        else:
+            pickup_date = pickup_datetime
+    
+        
         # All parameters
         query = (
             supabase.table("loads")
@@ -56,6 +70,7 @@ def generate_query(equipment_type: str, origin_min_lat: float, origin_max_lat: f
             .gte("destination_lng", destination_min_lng)
             .lte("destination_lng", destination_max_lng)
             .eq("pickup_datetime", pickup_datetime)
+            .gte("pickup_datetime", today)
             .limit(3)
         )
     elif has_destination and not has_pickup_datetime:
@@ -72,9 +87,22 @@ def generate_query(equipment_type: str, origin_min_lat: float, origin_max_lat: f
             .lte("destination_lat", destination_max_lat)
             .gte("destination_lng", destination_min_lng)
             .lte("destination_lng", destination_max_lng)
+            .gte("pickup_datetime", today)
             .limit(3)
         )
     elif not has_destination and has_pickup_datetime:
+        # Equipment + Origin + pickup_datetime - check if specific pickup_datetime is >= today
+        if isinstance(pickup_datetime, datetime):
+            pickup_date = pickup_datetime.date()
+        elif isinstance(pickup_datetime, str):
+            pickup_date = datetime.fromisoformat(pickup_datetime).date()
+        else:
+            pickup_date = pickup_datetime
+        
+        if pickup_date < today:
+            logger.debug(f"Specific pickup_datetime {pickup_datetime} is in the past, returning empty results")
+            return None  # Return None to indicate no query should be executed
+        
         # Equipment + Origin + pickup_datetime
         query = (
             supabase.table("loads")
@@ -85,6 +113,7 @@ def generate_query(equipment_type: str, origin_min_lat: float, origin_max_lat: f
             .gte("origin_lng", origin_min_lng)
             .lte("origin_lng", origin_max_lng)
             .eq("pickup_datetime", pickup_datetime)
+            .gte("pickup_datetime", today)
             .limit(3)
         )
     else:
@@ -97,6 +126,7 @@ def generate_query(equipment_type: str, origin_min_lat: float, origin_max_lat: f
             .lte("origin_lat", origin_max_lat)
             .gte("origin_lng", origin_min_lng)
             .lte("origin_lng", origin_max_lng)
+            .gte("pickup_datetime", today)
             .limit(3)
         )
     logger.debug(f"Generated query: {query}")    
@@ -188,8 +218,12 @@ def find_loads_within_radius(equipment_type: str, origin: str, destination: str 
                                 destination_max_lng,
                                 pickup_datetime)
         
-        result = query.execute()
-        loads_data = result.data if result.data else []
+        if query is None:
+            logger.debug("Attempt 1: Query returned None (specific pickup_datetime is in the past)")
+            loads_data = []
+        else:
+            result = query.execute()
+            loads_data = result.data if result.data else []
         logger.debug(f"Attempt 1 returned {len(loads_data)} loads")
         
         if loads_data:
