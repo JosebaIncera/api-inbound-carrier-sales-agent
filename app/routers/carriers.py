@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from app.schemas.schemas import CarrierResponse
-from app.utils.utils_carriers import validate_mc_format
+from app.utils.utils_carriers import validate_mc_format, extract_mc_digits, check_carrier_exists
 from app.auth import verify_api_key
 import logging
 import time
@@ -32,24 +32,58 @@ async def validate_carrier(
         # API key is automatically validated by the dependency
         logger.debug("API key validation passed")
         
-        # Validar directamente el MC number proporcionado
+        # Validar formato del MC number
         logger.debug(f"Calling validate_mc_format for: {mc_number}")
-        is_valid = validate_mc_format(mc_number)
-        logger.debug(f"MC validation result: {is_valid}")
+        format_valid = validate_mc_format(mc_number)
+        logger.debug(f"MC format validation result: {format_valid}")
         
-        if is_valid:
-            message = f"MC number {mc_number} is valid"
-            logger.info(f"MC validation successful: {mc_number}")
-        else:
+        if not format_valid:
             message = f"MC number {mc_number} is invalid. Expected format: MC XXXXXX"
             logger.warning(f"MC validation failed: {mc_number} - Invalid format")
+            processing_time = time.time() - start_time
+            logger.info(f"MC validation completed in {processing_time:.3f}s for: {mc_number}")
+            
+            return CarrierResponse(
+                statusCode=200,
+                verified_carrier=False,
+                message=message
+            )
+        
+        # Extraer los dígitos del MC number
+        logger.debug(f"Extracting MC digits from: {mc_number}")
+        mc_digits = extract_mc_digits(mc_number)
+        logger.debug(f"Extracted MC digits: {mc_digits}")
+        
+        if not mc_digits:
+            message = f"Could not extract MC digits from: {mc_number}"
+            logger.error(f"MC digit extraction failed: {mc_number}")
+            processing_time = time.time() - start_time
+            logger.info(f"MC validation completed in {processing_time:.3f}s for: {mc_number}")
+            
+            return CarrierResponse(
+                statusCode=200,
+                verified_carrier=False,
+                message=message
+            )
+        
+        # Verificar si el carrier existe en la base de datos
+        logger.debug(f"Checking if carrier exists with MC digits: {mc_digits}")
+        carrier_exists = check_carrier_exists(mc_digits)
+        logger.debug(f"Carrier exists check result: {carrier_exists}")
+        
+        if carrier_exists:
+            message = f"MC number {mc_number} is valid and carrier exists in database"
+            logger.info(f"MC validation successful: {mc_number} - Carrier found in database")
+        else:
+            message = f"MC number {mc_number} has valid format but carrier not found in database"
+            logger.warning(f"MC validation failed: {mc_number} - Carrier not found in database")
         
         processing_time = time.time() - start_time
         logger.info(f"MC validation completed in {processing_time:.3f}s for: {mc_number}")
         
         return CarrierResponse(
             statusCode=200,
-            verified_carrier=is_valid,
+            verified_carrier=carrier_exists,
             message=message
         )
         
