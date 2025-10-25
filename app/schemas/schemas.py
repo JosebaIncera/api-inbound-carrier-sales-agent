@@ -103,8 +103,12 @@ class MetricsRequest(BaseModel):
 class MetricsResponse(BaseModel):
     statusCode: int
     success: Optional[bool] = True
-    message: Optional[str] = "Success"
     metrics: Optional[List[Dict[str, Any]]] = None
+
+class StoreMetricsResponse(BaseModel):
+    statusCode: int
+    success: Optional[bool] = True
+    message: Optional[str] = ""
 
 
 class MetricsStatsResponse(BaseModel):

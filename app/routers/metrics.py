@@ -29,6 +29,7 @@ async def get_metrics(api_key: str = Depends(verify_api_key)):
         # return metrics
         return MetricsResponse(
             statusCode=200,
+            success=True,
             metrics=metrics
         )
     except Exception as e:
@@ -54,7 +55,7 @@ async def store_metrics(metrics: MetricsRequest, api_key: str = Depends(verify_a
             message = "Failed to store metrics"
         
         # return metrics
-        return MetricsResponse(statusCode=200, success=success, message=message)
+        return StoreMetricsResponse(statusCode=200, success=success, message=message)
     except Exception as e:
         processing_time = time.time() - start_time
         logger.error(f"Error in store_metrics endpoint: {str(e)}")
@@ -85,7 +86,7 @@ async def update_metrics(api_key: str = Depends(verify_api_key)):
         processing_time = time.time() - start_time
         logger.info(f"Metrics update process started in background. Processing time: {processing_time:.3f}s")
         
-        return MetricsResponse(
+        return StoreMetricsResponse(
             statusCode=200, 
             success=True, 
             message="Metrics update process started in background"
